@@ -1,19 +1,32 @@
 .App {
   text-align: center;
-  background-color: #282c34;
+  background-color: #7B4F3B;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   font-size: calc(10px + 2vmin);
   color: white;
 }
-
 .header {
   padding-top: 16px;
 }
+.header h1 {
+  font-family: "Monoton", cursive;
+  color: #FBBA9A;
+  font-weight: 400;
+}
+
 .main {
+  font-family: "Fugaz One", cursive;
   display: flex;
+  flex-direction: column;
   flex: 1;
   justify-content: center;
   align-items: center;
+}
+.author {
+  font-style: italic;
+}
+.error {
+  color: lightcoral;
 }
