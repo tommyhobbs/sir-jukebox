@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: #7B4F3B;
+  background-color: #7b4f3b;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -12,7 +12,7 @@
 }
 .header h1 {
   font-family: "Monoton", cursive;
-  color: #FBBA9A;
+  color: #fbba9a;
   font-weight: 400;
 }
 
