@@ -32,7 +32,7 @@ const App = () => {
   const handleSubmit = (name, url) => {
     const formattedUrl = url
       .replace(
-        /youtu.be|https:\/\/www.youtube.com\/watch\?v=/g,
+        /https:\/\/youtu.be\/|https:\/\/www.youtube.com\/watch\?v=/g,
         "https://www.youtube.com/embed/"
       )
       .replace(/&.*/g, "");
