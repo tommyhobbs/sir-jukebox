@@ -3,20 +3,21 @@ import "./App.css";
 import Form from "./components/Form";
 
 const App = () => {
-  const [isError, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("https://www.youtube.com/embed/hmKshpLXnxE");
 
-  useEffect(() => {
-    console.log("fetch /api/video");
+  const setLatestVideo = () =>
     fetch("/api/video")
-      .then((response) => console.log(response))
-      // .then((data) => {
-      //   console.log("data",data);
-      //   data.name && setAuthor(data.name);
-      //   data.youtubeUrl && setUrl(data.youtubeUrl);
-      // });
-  }, []);
+      .then((response) => response.json())
+      .then((data) => {
+        data.name && setAuthor(data.name);
+        data.youtubeUrl && setUrl(data.youtubeUrl);
+      });
+
+  useEffect(() => {
+    setLatestVideo();
+  }, [url]);
 
   const isValidHttpUrl = (potentialUrl) => {
     let url;
@@ -29,18 +30,33 @@ const App = () => {
   };
 
   const handleSubmit = (name, url) => {
-    fetch("/api/video", {
-      method: "POST",
-      body: JSON.stringify({ name, youtubeUrl: url }),
-    }).then((response) => console.log(response));
-
-    // if (isValidHttpUrl(url)) {
-    //   setAuthor(name);
-    //   setUrl(url.replace("https://youtu.be", "https://www.youtube.com/embed/"));
-    //   setError(false);
-    // } else {
-    //   setError(true);
-    // }
+    const formattedUrl = url
+      .replace(
+        /youtu.be|https:\/\/www.youtube.com\/watch\?v=/g,
+        "https://www.youtube.com/embed/"
+      )
+      .replace(/&.*/g, "");
+    if (isValidHttpUrl(formattedUrl)) {
+      fetch("/api/video", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, youtubeUrl: formattedUrl }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.acknowledged) {
+            setLatestVideo();
+            setErrorMessage("");
+          } else {
+            setErrorMessage("Error submitting");
+          }
+        })
+        .catch((e) => setErrorMessage(e));
+    } else {
+      setErrorMessage("Invalid YouTube url");
+    }
   };
   return (
     <div className="App">
@@ -64,7 +80,7 @@ const App = () => {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
         ></iframe>
-        {isError && <p className="error">Invalid YouTube url</p>}
+        {errorMessage && <p className="error">{errorMessage}</p>}
         <Form handleSubmit={handleSubmit} />
       </body>
     </div>
