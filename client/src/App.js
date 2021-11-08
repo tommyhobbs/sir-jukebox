@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import Form from "./components/Form";
 
@@ -6,6 +6,17 @@ const App = () => {
   const [isError, setError] = useState(false);
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("https://www.youtube.com/embed/hmKshpLXnxE");
+
+  useEffect(() => {
+    console.log("fetch /api/video");
+    fetch("/api/video")
+      .then((response) => console.log(response))
+      // .then((data) => {
+      //   console.log("data",data);
+      //   data.name && setAuthor(data.name);
+      //   data.youtubeUrl && setUrl(data.youtubeUrl);
+      // });
+  }, []);
 
   const isValidHttpUrl = (potentialUrl) => {
     let url;
@@ -18,13 +29,18 @@ const App = () => {
   };
 
   const handleSubmit = (name, url) => {
-    if (isValidHttpUrl(url)) {
-      setAuthor(name);
-      setUrl(url.replace("https://youtu.be", "https://www.youtube.com/embed/"));
-      setError(false);
-    } else {
-      setError(true);
-    }
+    fetch("/api/video", {
+      method: "POST",
+      body: JSON.stringify({ name, youtubeUrl: url }),
+    }).then((response) => console.log(response));
+
+    // if (isValidHttpUrl(url)) {
+    //   setAuthor(name);
+    //   setUrl(url.replace("https://youtu.be", "https://www.youtube.com/embed/"));
+    //   setError(false);
+    // } else {
+    //   setError(true);
+    // }
   };
   return (
     <div className="App">
