@@ -1,13 +1,23 @@
-const express = require("express");
 const path = require("path");
 const dotenv = require("dotenv");
-const app = express();
 dotenv.config();
+const express = require("express");
+const app = express();
+const webpush = require("web-push");
 
 const { MongoClient } = require("mongodb");
 const { response } = require("express");
+const { stringify } = require("querystring");
 
 const uri = process.env.MONGODB_URI;
+const publicVapidKey = process.env.PUBLIC_VAPID_KEY;
+const privateVapidKey = process.env.PRIVATE_VAPID_KEY;
+
+webpush.setVapidDetails(
+  "https://www.linkedin.com/in/tommyhobbs",
+  publicVapidKey,
+  privateVapidKey
+);
 
 app.use(express.json());
 // use the express-static middleware
@@ -62,6 +72,17 @@ app.get("/.well-known/acme-challenge/:content", function (req, res) {
   res.send(
     "THBQZy95VEHLGBEaSAtdHYg5u-i42nTBs8xuCgA0Trs.38_nyYUeg_Q_neXtCpCGPrqwhrJqfacXiMcJS_Sfs30"
   );
+});
+
+//Subscribe Route
+app.post("/subscribe", (req, res) => {
+  const subscription = req.body;
+  res.status(201).json({});
+  const payload = JSON.stringify({ title: "Push Test" });
+  console.log(subscription);
+  webpush
+    .sendNotification(subscription, payload)
+    .catch((err) => console.error(err));
 });
 
 // start the server listening for requests
