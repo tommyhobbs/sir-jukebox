@@ -57,5 +57,12 @@ app.post("/api/video", async function (req, res) {
   }
 });
 
+// certbot response
+app.get("/.well-known/acme-challenge/:content", function (req, res) {
+  res.send(
+    "mJsXx-zUIWMQ9o4Cqtw8OGXG2bYmH1cxiX0huAxF6uY.38_nyYUeg_Q_neXtCpCGPrqwhrJqfacXiMcJS_Sfs30"
+  );
+});
+
 // start the server listening for requests
 app.listen(process.env.PORT || 5000, () => console.log("Server is running..."));
