@@ -116,7 +116,7 @@ app.post("/subscribe", async (req, res) => {
       await client
         .db("sir_jukebox")
         .collection("subscriptions")
-        .insertOne(subscription);
+        .insertOne({ subscription });
       webpush.sendNotification(
         subscription,
         JSON.stringify({ title: "Subscribed to now playing..." })
