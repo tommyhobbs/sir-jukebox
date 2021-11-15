@@ -16,7 +16,9 @@ ReactDOM.render(
 
 // Check for service worker
 if ("serviceWorker" in navigator) {
-  send().catch((err) => console.error(err));
+  Notification.requestPermission()
+    .then((permission) => permission === "granted" && send())
+    .catch((err) => console.error(err));
 }
 
 // Register SW, Register Push, Send Push

@@ -77,14 +77,12 @@ app.post("/api/video", async function (req, res) {
     subs
       .filter((sub) => sub !== req.body.subscription)
       .map((sub) =>
-        webpush
-          .sendNotification(
-            sub,
-            JSON.stringify({
-              title: `${req.body?.data?.name}'s track has been added...`,
-            })
-          )
-          .catch((err) => console.error(err))
+        webpush.sendNotification(
+          sub,
+          JSON.stringify({
+            title: `${req.body?.data?.name}'s track has been added...`,
+          })
+        )
       );
     res.send(result);
   } catch (err) {
@@ -104,25 +102,25 @@ app.get("/.well-known/acme-challenge/:content", function (req, res) {
 
 //Subscribe Route
 app.post("/subscribe", async (req, res) => {
+  const subscription = req.body;
+  console.log(subscription);
   const client = new MongoClient(uri, { useUnifiedTopology: true });
   try {
     await client.connect();
     const isSubscribed = await client
       .db("sir_jukebox")
       .collection("subscriptions")
-      .findOne(req.body.subscription, { sort: { $natural: -1 } });
+      .findOne({ subscription }, { sort: { $natural: -1 } });
     console.log("isSubscribed?", Boolean(isSubscribed));
     if (!isSubscribed) {
       await client
         .db("sir_jukebox")
         .collection("subscriptions")
         .insertOne(subscription);
-      webpush
-        .sendNotification(
-          subscription,
-          JSON.stringify({ title: "Subscribed to now playing..." })
-        )
-        .catch((err) => console.error(err));
+      webpush.sendNotification(
+        subscription,
+        JSON.stringify({ title: "Subscribed to now playing..." })
+      );
     }
     res.status(201).json({});
   } catch (err) {
