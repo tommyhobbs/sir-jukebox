@@ -8,3 +8,5 @@ self.addEventListener("push", (e) => {
     icon: "logo512.png",
   });
 });
+
+self.addEventListener("notificationclick", () => clients.openWindow("/"));

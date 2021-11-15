@@ -73,14 +73,14 @@ app.post("/api/video", async function (req, res) {
       .toArray();
 
     console.log("subscriptions", subs);
-    // send notificaiton to everybody else
+    // send notification to everybody else
     subs
-      .filter((sub) => sub !== req.body.subscription)
+      .filter((s) => s !== sub)
       .map((sub) =>
         webpush.sendNotification(
           sub,
           JSON.stringify({
-            title: `${req.body?.data?.name}'s track has been added...`,
+            title: `Check out ${req.body?.data?.name}'s track!`,
           })
         )
       );
