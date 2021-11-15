@@ -6,8 +6,6 @@ const app = express();
 const webpush = require("web-push");
 
 const { MongoClient } = require("mongodb");
-const { response } = require("express");
-const { stringify } = require("querystring");
 
 const uri = process.env.MONGODB_URI;
 const publicVapidKey = process.env.PUBLIC_VAPID_KEY;
@@ -26,10 +24,8 @@ app.use(express.static("public"));
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "client/build")));
 
-// define the first route
 app.get("/api/video", async function (req, res) {
   const client = new MongoClient(uri, { useUnifiedTopology: true });
-
   try {
     await client.connect();
     const result = await client
@@ -46,18 +42,46 @@ app.get("/api/video", async function (req, res) {
   }
 });
 
-// define the first route
 app.post("/api/video", async function (req, res) {
   const client = new MongoClient(uri, { useUnifiedTopology: true });
-
-  console.log(req.body);
-
+  console.log("POST /api/video", req.body);
   try {
     await client.connect();
     const result = await client
       .db("sir_jukebox")
       .collection("videos")
-      .insertOne(req.body);
+      .insertOne(req.body.data);
+    const subscriptions = await client
+      .db("sir_jukebox")
+      .collection("subscriptions")
+      .find()
+      .sort({ $natural: 1 })
+      .limit(50);
+    console.log("subscriptions", subscriptions);
+    if (req.body.subscription) {
+      // send notificaiton to submitter
+      webpush
+        .sendNotification(
+          req.body.subscription,
+          JSON.stringify({
+            title: `Your track has been added...`,
+          })
+        )
+        .catch((err) => console.error(err));
+      // send notificaiton to everybody else
+      subscriptions
+        .filter((sub) => sub !== req.body.subscription)
+        .map((sub) =>
+          webpush
+            .sendNotification(
+              sub,
+              JSON.stringify({
+                title: `${req.body?.data?.name}'s track has been added...`,
+              })
+            )
+            .catch((err) => console.error(err))
+        );
+    }
     res.send(result);
   } catch (err) {
     throw new Error(err);
@@ -75,14 +99,28 @@ app.get("/.well-known/acme-challenge/:content", function (req, res) {
 });
 
 //Subscribe Route
-app.post("/subscribe", (req, res) => {
+app.post("/subscribe", async (req, res) => {
   const subscription = req.body;
-  res.status(201).json({});
-  const payload = JSON.stringify({ title: "Push Test" });
-  console.log(subscription);
-  webpush
-    .sendNotification(subscription, payload)
-    .catch((err) => console.error(err));
+  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  try {
+    await client.connect();
+    await client
+      .db("sir_jukebox")
+      .collection("subscriptions")
+      .insertOne(subscription);
+    webpush
+      .sendNotification(
+        subscription,
+        JSON.stringify({ title: "Subscribed to now playing..." })
+      )
+      .catch((err) => console.error(err));
+    res.status(201).json({});
+  } catch (err) {
+    throw new Error(err);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
 });
 
 // start the server listening for requests

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { isValidHttpUrl } from "./lib/utils";
 import "./App.css";
 import Form from "./components/Form";
 
@@ -6,55 +7,6 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("https://www.youtube.com/embed/hmKshpLXnxE");
-
-  // Check for service worker
-  if ("serviceWorker" in navigator) {
-    send().catch((err) => console.error(err));
-  }
-
-  // Register SW, Register Push, Send Push
-  async function send() {
-    // Register Service Worker
-    console.log("Registering service worker...");
-    const register = await navigator.serviceWorker.getRegistration("/");
-    console.log("Service Worker Registered...");
-
-    // Register Push
-    console.log("Registering Push...");
-    const subscription = await register.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        "BBNQnvagclb6wONqqiQY3UQzUuqyZbVOEeSaYk6-FSQOY6nnnADcdLCiqjRLfdQuUrR1Lh6fIRNUvjQ8FW6diiU"
-      ),
-    });
-    console.log("Push Registered...");
-
-    // Send Push Notification
-    console.log("Sending Push...");
-    await fetch("/subscribe", {
-      method: "POST",
-      body: JSON.stringify(subscription),
-      headers: {
-        "content-type": "application/json",
-      },
-    });
-    console.log("Push Sent...");
-  }
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, "+")
-      .replace(/_/g, "/");
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
 
   const setLatestVideo = () =>
     fetch("/api/video")
@@ -68,16 +20,6 @@ const App = () => {
     setLatestVideo();
   }, [url]);
 
-  const isValidHttpUrl = (potentialUrl) => {
-    let url;
-    try {
-      url = new URL(potentialUrl);
-    } catch (_) {
-      return false;
-    }
-    return url.protocol === "http:" || url.protocol === "https:";
-  };
-
   const handleSubmit = (name, url) => {
     const formattedUrl = url
       .replace(
@@ -86,13 +28,30 @@ const App = () => {
       )
       .replace(/&.*/g, "");
     if (isValidHttpUrl(formattedUrl)) {
-      fetch("/api/video", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, youtubeUrl: formattedUrl }),
-      })
+      navigator.serviceWorker.ready
+        .then((subscription) => {
+          if (!subscription) {
+            // We aren’t subscribed to push, so set UI
+            // to allow the user to enable push
+            return;
+          }
+          return subscription;
+        })
+        .then((serviceWorkerRegistration) =>
+          serviceWorkerRegistration.pushManager.getSubscription()
+        )
+        .then((registration) =>
+          fetch("/api/video", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              subscription: registration,
+              data: { name, youtubeUrl: formattedUrl },
+            }),
+          })
+        )
         .then((response) => response.json())
         .then((data) => {
           if (data.acknowledged) {
@@ -102,7 +61,9 @@ const App = () => {
             setErrorMessage("Error submitting");
           }
         })
-        .catch((e) => setErrorMessage(e));
+        .catch((e) => {
+          setErrorMessage(e);
+        });
     } else {
       setErrorMessage("Invalid YouTube url");
     }
@@ -125,9 +86,9 @@ const App = () => {
         <iframe
           src={url}
           title="YouTube video player"
-          frameborder="0"
+          frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
+          allowFullScreen
         ></iframe>
         {errorMessage && <p className="error">{errorMessage}</p>}
         <Form handleSubmit={handleSubmit} />
