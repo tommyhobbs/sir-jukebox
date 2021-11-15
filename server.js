@@ -104,20 +104,26 @@ app.get("/.well-known/acme-challenge/:content", function (req, res) {
 
 //Subscribe Route
 app.post("/subscribe", async (req, res) => {
-  const subscription = req.body;
   const client = new MongoClient(uri, { useUnifiedTopology: true });
   try {
     await client.connect();
-    await client
+    const isSubscribed = await client
       .db("sir_jukebox")
       .collection("subscriptions")
-      .insertOne(subscription);
-    webpush
-      .sendNotification(
-        subscription,
-        JSON.stringify({ title: "Subscribed to now playing..." })
-      )
-      .catch((err) => console.error(err));
+      .findOne(req.body.subscription, { sort: { $natural: -1 } });
+    console.log("isSubscribed?", Boolean(isSubscribed));
+    if (!isSubscribed) {
+      await client
+        .db("sir_jukebox")
+        .collection("subscriptions")
+        .insertOne(subscription);
+      webpush
+        .sendNotification(
+          subscription,
+          JSON.stringify({ title: "Subscribed to now playing..." })
+        )
+        .catch((err) => console.error(err));
+    }
     res.status(201).json({});
   } catch (err) {
     throw new Error(err);
