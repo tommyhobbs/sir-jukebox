@@ -51,15 +51,7 @@ app.post("/api/video", async function (req, res) {
       .db("sir_jukebox")
       .collection("videos")
       .insertOne(req.body.data);
-    const subscriptions = await client
-      .db("sir_jukebox")
-      .collection("subscriptions")
-      .find()
-      .sort({ $natural: 1 })
-      .limit(50)
-      .then((res) => res.json())
-      .catch((e) => console.error(e));
-    console.log("subscriptions", subscriptions);
+
     if (req.body.subscription) {
       // send notificaiton to submitter
       webpush
@@ -70,20 +62,30 @@ app.post("/api/video", async function (req, res) {
           })
         )
         .catch((err) => console.error(err));
-      // send notificaiton to everybody else
-      subscriptions
-        .filter((sub) => sub !== req.body.subscription)
-        .map((sub) =>
-          webpush
-            .sendNotification(
-              sub,
-              JSON.stringify({
-                title: `${req.body?.data?.name}'s track has been added...`,
-              })
-            )
-            .catch((err) => console.error(err))
-        );
     }
+
+    const subs = await client
+      .db("sir_jukebox")
+      .collection("subscriptions")
+      .find()
+      .sort({ $natural: 1 })
+      .limit(50)
+      .toArray();
+
+    console.log("subscriptions", subs);
+    // send notificaiton to everybody else
+    subs
+      .filter((sub) => sub !== req.body.subscription)
+      .map((sub) =>
+        webpush
+          .sendNotification(
+            sub,
+            JSON.stringify({
+              title: `${req.body?.data?.name}'s track has been added...`,
+            })
+          )
+          .catch((err) => console.error(err))
+      );
     res.send(result);
   } catch (err) {
     throw new Error(err);
