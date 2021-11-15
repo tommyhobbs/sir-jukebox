@@ -57,7 +57,8 @@ app.post("/api/video", async function (req, res) {
       .find()
       .sort({ $natural: 1 })
       .limit(50)
-      .json();
+      .then((res) => res.json())
+      .catch((e) => console.error(e));
     console.log("subscriptions", subscriptions);
     if (req.body.subscription) {
       // send notificaiton to submitter
