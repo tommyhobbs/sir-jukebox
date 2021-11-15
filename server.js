@@ -54,14 +54,12 @@ app.post("/api/video", async function (req, res) {
 
     if (req.body.subscription) {
       // send notificaiton to submitter
-      webpush
-        .sendNotification(
-          req.body.subscription,
-          JSON.stringify({
-            title: `Your track has been added...`,
-          })
-        )
-        .catch((err) => console.error(err));
+      webpush.sendNotification(
+        req.body.subscription,
+        JSON.stringify({
+          title: `Your track has been added...`,
+        })
+      );
     }
 
     const subs = await client
@@ -75,10 +73,10 @@ app.post("/api/video", async function (req, res) {
     console.log("subscriptions", subs);
     // send notification to everybody else
     subs
-      .filter((s) => s !== sub)
-      .map((sub) =>
+      .filter(({ subscription }) => subscription !== req.body.subscription)
+      .map(({ subscription }) =>
         webpush.sendNotification(
-          sub,
+          subscription,
           JSON.stringify({
             title: `Check out ${req.body?.data?.name}'s track!`,
           })
