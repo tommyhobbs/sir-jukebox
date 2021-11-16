@@ -15,5 +15,8 @@
     "start": "node server.js",
     "dev": "cd client && yarn && yarn run build && cd .. && yarn start",
     "heroku-postbuild": "cd client && yarn && yarn run build"
+  },
+  "devDependencies": {
+    "prettier": "^2.4.1"
   }
 }

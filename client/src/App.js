@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { isValidHttpUrl } from "./lib/utils";
 import "./App.css";
 import Form from "./components/Form";
+import Bell from "./components/Bell";
 
 const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -71,6 +72,7 @@ const App = () => {
   return (
     <div className="App">
       <header className="header">
+        <Bell />
         <h1>Sir Jukebox</h1>
         <p>
           Under construction by{" "}

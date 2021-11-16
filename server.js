@@ -101,7 +101,7 @@ app.get("/.well-known/acme-challenge/:content", function (req, res) {
   );
 });
 
-//Subscribe Route
+// Subscribe Route
 app.post("/subscribe", async (req, res) => {
   const subscription = req.body;
   console.log(subscription);
@@ -124,6 +124,48 @@ app.post("/subscribe", async (req, res) => {
       );
     }
     res.status(201).json({});
+  } catch (err) {
+    throw new Error(err);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+});
+
+app.delete("/subscribe", async (req, res) => {
+  console.log("DELETE /subscribe");
+
+  const subscription = req.body;
+  console.log(subscription);
+  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  try {
+    await client.connect();
+    await client
+      .db("sir_jukebox")
+      .collection("subscriptions")
+      .deleteOne({ subscription });
+    res.sendStatus(204);
+  } catch (err) {
+    throw new Error(err);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+});
+
+// Subscribe Route
+app.post("/isSubscribed", async (req, res) => {
+  console.log("/isSubscribed");
+  const subscription = req.body;
+  console.log(subscription);
+  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  try {
+    await client.connect();
+    const isSubscribed = await client
+      .db("sir_jukebox")
+      .collection("subscriptions")
+      .findOne({ subscription }, { sort: { $natural: -1 } });
+    res.status(200).json({ subscription: isSubscribed ? subscription : null });
   } catch (err) {
     throw new Error(err);
   } finally {
