@@ -53,7 +53,7 @@ app.post("/api/video", async function (req, res) {
       .insertOne(req.body.data);
 
     if (req.body.subscription) {
-      // send notificaiton to submitter
+      // send notification to submitter
       webpush.sendNotification(
         req.body.subscription,
         JSON.stringify({
@@ -73,12 +73,15 @@ app.post("/api/video", async function (req, res) {
     console.log("subscriptions", subs);
     // send notification to everybody else
     subs
-      .filter(({ subscription }) => subscription !== req.body.subscription)
+      .filter(
+        ({ subscription }) =>
+          subscription?.endpoint !== req.body.subscription?.endpoint
+      )
       .map(({ subscription }) =>
         webpush.sendNotification(
           subscription,
           JSON.stringify({
-            title: `Check out ${req.body?.data?.name}'s track!`,
+            title: `${req.body?.data?.name} added a new track!`,
           })
         )
       );
