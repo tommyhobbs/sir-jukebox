@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { isValidHttpUrl } from "./lib/utils";
 import "./App.css";
 import Form from "./components/Form";
+import Bell from "./components/Bell";
 
 const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -19,16 +21,6 @@ const App = () => {
     setLatestVideo();
   }, [url]);
 
-  const isValidHttpUrl = (potentialUrl) => {
-    let url;
-    try {
-      url = new URL(potentialUrl);
-    } catch (_) {
-      return false;
-    }
-    return url.protocol === "http:" || url.protocol === "https:";
-  };
-
   const handleSubmit = (name, url) => {
     const formattedUrl = url
       .replace(
@@ -37,13 +29,30 @@ const App = () => {
       )
       .replace(/&.*/g, "");
     if (isValidHttpUrl(formattedUrl)) {
-      fetch("/api/video", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, youtubeUrl: formattedUrl }),
-      })
+      navigator.serviceWorker.ready
+        .then((subscription) => {
+          if (!subscription) {
+            // We aren’t subscribed to push, so set UI
+            // to allow the user to enable push
+            return;
+          }
+          return subscription;
+        })
+        .then((serviceWorkerRegistration) =>
+          serviceWorkerRegistration.pushManager.getSubscription()
+        )
+        .then((registration) =>
+          fetch("/api/video", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              subscription: registration,
+              data: { name, youtubeUrl: formattedUrl },
+            }),
+          })
+        )
         .then((response) => response.json())
         .then((data) => {
           if (data.acknowledged) {
@@ -53,7 +62,9 @@ const App = () => {
             setErrorMessage("Error submitting");
           }
         })
-        .catch((e) => setErrorMessage(e));
+        .catch((e) => {
+          setErrorMessage(e);
+        });
     } else {
       setErrorMessage("Invalid YouTube url");
     }
@@ -61,6 +72,7 @@ const App = () => {
   return (
     <div className="App">
       <header className="header">
+        <Bell />
         <h1>Sir Jukebox</h1>
         <p>
           Under construction by{" "}
@@ -76,9 +88,9 @@ const App = () => {
         <iframe
           src={url}
           title="YouTube video player"
-          frameborder="0"
+          frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
+          allowFullScreen
         ></iframe>
         {errorMessage && <p className="error">{errorMessage}</p>}
         <Form handleSubmit={handleSubmit} />
