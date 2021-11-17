@@ -6,49 +6,43 @@ const publicVapidKey =
   "BNcIUnZ1ZHcrOSjMaF304qB5pcYWnxOlIO6QUwwnkOoHxA5zUup4YyovWqE3NGvAwW22bzn5WUqSab1yqpaeOtA";
 
 const Bell = () => {
-  const [worker, setWorker] = useState(null);
+  const [isSupported, setSupported] = useState(false);
   const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    const checkSupported = async () => {
-      const register = await navigator.serviceWorker.register("/worker.js", {
-        scope: "/",
-      });
-      setWorker(register?.pushManager || null);
-    };
+    const fetchSubscription = async (worker) => {
+      try {
+        const subscription = await worker.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        });
+        console.log("Push Registered...");
 
-    const fetchSubscription = async () => {
-      if ("serviceWorker" in navigator) {
-        try {
-          const subscription = await worker.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-          });
-          console.log("Push Registered...");
-
-          // Send subscription and check if its in the db
-          console.log("Checking subscription...");
-          const res = await fetch("/isSubscribed", {
-            method: "POST",
-            body: JSON.stringify(subscription),
-            headers: {
-              "content-type": "application/json",
-            },
-          });
-          console.log("IsSubscribed Sent...");
-          const data = await res.json();
-          return data?.subscription || null;
-        } catch (e) {
-          console.error(e);
-        }
+        // Send subscription and check if its in the db
+        console.log("Checking subscription...");
+        const res = await fetch("/isSubscribed", {
+          method: "POST",
+          body: JSON.stringify(subscription),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+        console.log("IsSubscribed Sent...");
+        const data = await res.json();
+        return data?.subscription || null;
+      } catch (e) {
+        console.error(e);
       }
     };
-    checkSupported();
-    worker &&
-      fetchSubscription()
-        .then((subscription) => setSubscription(subscription))
-        .catch((e) => console.error(e));
-  }, [worker]);
+    navigator.serviceWorker
+      .register("/worker.js")
+      .then((worker) => {
+        setSupported(Boolean(worker.pushManager));
+        return isSupported ? fetchSubscription(worker) : null;
+      }) // only fetch if supported (i.e. not safari)
+      .then((subscription) => setSubscription(subscription))
+      .catch((e) => console.error(e));
+  }, [isSupported]);
 
   const handleBellClick = () => {
     if (subscription) {
@@ -61,7 +55,7 @@ const Bell = () => {
   };
 
   // Register SW, Register Push, Send Push
-  async function register() {
+  const register = async () => {
     try {
       // Register Service Worker
       console.log("Registering service worker...");
@@ -93,7 +87,7 @@ const Bell = () => {
     } catch (e) {
       console.error(e);
     }
-  }
+  };
 
   // Delete subscription
   const unregister = async () => {
@@ -116,7 +110,7 @@ const Bell = () => {
 
   return (
     <>
-      {worker ? (
+      {isSupported ? (
         <button onClick={handleBellClick}>
           {subscription ? "Unsubscribe 🔕" : "Subscribe 🔔"}
         </button>
