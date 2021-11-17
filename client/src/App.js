@@ -96,9 +96,11 @@ const App = () => {
       </header>
       <body className="main">
         <div>
-          <span>
-            Selection by <span className="author">{nowPlaying.name}</span>
-          </span>
+          <div>
+            <span>
+              Selection by <span className="author">{nowPlaying.name}</span>
+            </span>
+          </div>
           <iframe
             src={nowPlaying.youtubeUrl}
             title="YouTube video player"
