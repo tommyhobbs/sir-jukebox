@@ -38,8 +38,10 @@ const Bell = () => {
       .register("/worker.js")
       .then((worker) => {
         setSupported(Boolean(worker.pushManager));
-        return isSupported ? fetchSubscription(worker) : null;
-      }) // only fetch if supported (i.e. not safari)
+        return isSupported
+          ? fetchSubscription(worker)
+          : console.log("Notifications unsupported 😔");
+      })
       .then((subscription) => setSubscription(subscription))
       .catch((e) => console.error(e));
   }, [isSupported]);
