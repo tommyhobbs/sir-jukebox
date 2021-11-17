@@ -9,29 +9,24 @@ self.addEventListener("push", (e) => {
   });
 });
 
-self.addEventListener("notificationclick", (event) => {
-  event.waitUntil(
-    (async function () {
-      const allClients = await clients.matchAll({
-        includeUncontrolled: true,
-      });
-      let sirjukeboxClient;
-      // Let's see if we already have a chat window open:
-      for (const client of allClients) {
-        if (client.location.href.indexOf("sirjukebox") > -1) {
-          // Excellent, let's use it!
-          client.focus();
-          sirjukeboxClient = client;
-          break;
-        }
-      }
-      // If we didn't find an existing chat window,
-      // open a new one:
-      if (!sirjukeboxClient) {
-        sirjukeboxClient = await clients.openWindow(
-          "https://sirjukebox.herokuapp.com/"
-        );
-      }
-    })()
+// Notification click event listener
+self.addEventListener("notificationclick", (e) => {
+  // Close the notification popout
+  e.notification.close();
+  // Get all the Window clients
+  e.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientsArr) => {
+      // If a Window tab matching the targeted URL already exists, focus that;
+      const hadWindowToFocus = clientsArr.some((windowClient) =>
+        windowClient.url === "https://sirjukebox.herokuapp.com"
+          ? (windowClient.focus(), true)
+          : false
+      );
+      // Otherwise, open a new tab to the applicable URL and focus it.
+      if (!hadWindowToFocus)
+        clients
+          .openWindow("https://sirjukebox.herokuapp.com")
+          .then((windowClient) => (windowClient ? windowClient.focus() : null));
+    })
   );
 });
