@@ -1,25 +1,41 @@
 import { useState, useEffect } from "react";
 import { isValidHttpUrl } from "./lib/utils";
 import "./App.css";
-import Form from "./components/Form";
-import Bell from "./components/Bell";
+import Form from "./components/Form/Form";
+import Bell from "./components/Bell/Bell";
+import History from "./components/History/History";
 
 const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
-  const [author, setAuthor] = useState("");
-  const [url, setUrl] = useState("https://www.youtube.com/embed/hmKshpLXnxE");
+  const [nowPlaying, setNowPlaying] = useState({
+    name: "Stevie Wonder",
+    youtubeUrl: "https://www.youtube.com/embed/hmKshpLXnxE",
+  });
+  const [results, setResults] = useState([]);
 
   const setLatestVideo = () =>
-    fetch("/api/video")
+    fetch("/api/videos")
       .then((response) => response.json())
       .then((data) => {
-        data.name && setAuthor(data.name);
-        data.youtubeUrl && setUrl(data.youtubeUrl);
+        // only have the newest song from each person
+        const filtered = data.reduce(
+          (prev, curr) =>
+            curr.name &&
+            curr.youtubeUrl &&
+            prev.find(({ name }) => name.trim() === curr.name.trim())
+              ? prev
+              : [...prev, curr],
+          []
+        );
+        filtered[0].name &&
+          filtered[0].youtubeUrl &&
+          setNowPlaying(filtered[0]);
+        setResults(filtered);
       });
 
   useEffect(() => {
     setLatestVideo();
-  }, [url]);
+  }, []);
 
   const handleSubmit = (name, url) => {
     const formattedUrl = url
@@ -69,31 +85,34 @@ const App = () => {
       setErrorMessage("Invalid YouTube url");
     }
   };
+
+  const handleSelect = (result) => setNowPlaying(result);
+
   return (
     <div className="App">
       <header className="header">
         <Bell />
         <h1>Sir Jukebox</h1>
-        <p>
-          Under construction by{" "}
-          <a href="https://github.com/tommyhobbs">Tom Hobbs</a>
-        </p>
       </header>
       <body className="main">
-        {Boolean(author.length) && (
+        <div>
           <span>
-            Selection by <span className="author">{author}</span>
+            Selection by <span className="author">{nowPlaying.name}</span>
           </span>
-        )}
-        <iframe
-          src={url}
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        ></iframe>
+          <iframe
+            src={nowPlaying.youtubeUrl}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+        <History results={results} handleSelect={handleSelect} />
         {errorMessage && <p className="error">{errorMessage}</p>}
         <Form handleSubmit={handleSubmit} />
+        <p className="construction">
+          by <a href="https://github.com/tommyhobbs/sir-jukebox">Tom Hobbs</a>
+        </p>
       </body>
     </div>
   );

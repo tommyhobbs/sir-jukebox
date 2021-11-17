@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { urlBase64ToUint8Array } from "../lib/utils";
+import { urlBase64ToUint8Array } from "../../lib/utils";
 import "./Bell.css";
 
 const publicVapidKey =
