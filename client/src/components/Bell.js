@@ -6,13 +6,49 @@ const publicVapidKey =
   "BNcIUnZ1ZHcrOSjMaF304qB5pcYWnxOlIO6QUwwnkOoHxA5zUup4YyovWqE3NGvAwW22bzn5WUqSab1yqpaeOtA";
 
 const Bell = () => {
+  const [worker, setWorker] = useState(null);
   const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    fetchSubscription()
-      .then((subscription) => setSubscription(subscription))
-      .catch((e) => console.error(e));
-  }, []);
+    const checkSupported = async () => {
+      const register = await navigator.serviceWorker.register("/worker.js", {
+        scope: "/",
+      });
+      setWorker(register?.pushManager || null);
+    };
+
+    const fetchSubscription = async () => {
+      if ("serviceWorker" in navigator) {
+        try {
+          const subscription = await worker.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+          });
+          console.log("Push Registered...");
+
+          // Send subscription and check if its in the db
+          console.log("Checking subscription...");
+          const res = await fetch("/isSubscribed", {
+            method: "POST",
+            body: JSON.stringify(subscription),
+            headers: {
+              "content-type": "application/json",
+            },
+          });
+          console.log("IsSubscribed Sent...");
+          const data = await res.json();
+          return data?.subscription || null;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    checkSupported();
+    worker &&
+      fetchSubscription()
+        .then((subscription) => setSubscription(subscription))
+        .catch((e) => console.error(e));
+  }, [worker]);
 
   const handleBellClick = () => {
     if (subscription) {
@@ -21,41 +57,6 @@ const Bell = () => {
       Notification.requestPermission()
         .then((permission) => permission === "granted" && register())
         .catch((err) => console.error(err));
-    }
-  };
-
-  const fetchSubscription = async () => {
-    if ("serviceWorker" in navigator) {
-      try {
-        console.log("Registering service worker...");
-        const register = await navigator.serviceWorker.register("/worker.js", {
-          scope: "/",
-        });
-        console.log("Service Worker Registered...");
-
-        // Register Push
-        console.log("Registering Push...");
-        const subscription = await register.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-        });
-        console.log("Push Registered...");
-
-        // Send subscription and check if its in the db
-        console.log("Checking subscription...");
-        const res = await fetch("/isSubscribed", {
-          method: "POST",
-          body: JSON.stringify(subscription),
-          headers: {
-            "content-type": "application/json",
-          },
-        });
-        console.log("IsSubscribed Sent...");
-        const data = await res.json();
-        return data?.subscription || null;
-      } catch (e) {
-        console.error(e);
-      }
     }
   };
 
@@ -95,27 +96,32 @@ const Bell = () => {
   }
 
   // Delete subscription
-  async function unregister() {
+  const unregister = async () => {
     try {
       // Delete registration
-      console.log("Sending Push...");
-      const res = await fetch("/subscribe", {
+      console.log("Unregistering...");
+      await fetch("/subscribe", {
         method: "DELETE",
         body: JSON.stringify(subscription),
         headers: {
           "content-type": "application/json",
         },
       });
-      console.log(res);
       setSubscription(null);
       navigator.serviceWorker.unregister();
     } catch (e) {
       console.error(e);
     }
-  }
+  };
 
   return (
-    <button onClick={handleBellClick}>{subscription ? "🔕" : "🔔"}</button>
+    <>
+      {worker ? (
+        <button onClick={handleBellClick}>
+          {subscription ? "Unsubscribe 🔕" : "Subscribe 🔔"}
+        </button>
+      ) : null}
+    </>
   );
 };
 
