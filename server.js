@@ -42,6 +42,26 @@ app.get("/api/video", async function (req, res) {
   }
 });
 
+app.get("/api/videos", async function (req, res) {
+  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  try {
+    await client.connect();
+    const results = await client
+      .db("sir_jukebox")
+      .collection("videos")
+      .find()
+      .sort({ $natural: -1 })
+      .limit(50)
+      .toArray();
+    res.send(results);
+  } catch (err) {
+    throw new Error(err);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+});
+
 app.post("/api/video", async function (req, res) {
   const client = new MongoClient(uri, { useUnifiedTopology: true });
   console.log("POST /api/video", req.body);

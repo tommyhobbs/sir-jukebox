@@ -21,4 +21,14 @@ const urlBase64ToUint8Array = (base64String) => {
   return outputArray;
 };
 
-export { isValidHttpUrl, urlBase64ToUint8Array };
+const getVideoCodeFromUrl = (url) => {
+  const matches = url.matchAll(
+    /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w-]+\?v=|embed\/|v\/)?)([\w-]+)(\S+)?$/g
+  );
+  for (const match of matches) {
+    return match[5];
+  }
+  return null;
+};
+
+export { isValidHttpUrl, urlBase64ToUint8Array, getVideoCodeFromUrl };

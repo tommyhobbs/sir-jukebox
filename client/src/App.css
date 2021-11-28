@@ -14,14 +14,14 @@
   font-family: "Monoton", cursive;
   color: #fbba9a;
   font-weight: 400;
+  margin: 8px;
 }
-
 .main {
   font-family: "Fugaz One", cursive;
   display: flex;
   flex-direction: column;
   flex: 1;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 .author {
@@ -29,4 +29,10 @@
 }
 .error {
   color: lightcoral;
+}
+p.construction {
+  align-self: flex-end;
+  bottom: 8px;
+  font-size: 16px;
+  margin: 8px;
 }
