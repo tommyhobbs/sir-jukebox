@@ -4,6 +4,7 @@ import "./App.css";
 import Form from "./components/Form/Form";
 import Bell from "./components/Bell/Bell";
 import History from "./components/History/History";
+import Jukebox from "./components/Jukebox/Jukebox";
 
 const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -92,26 +93,32 @@ const App = () => {
     <div className="App">
       <header className="header">
         <Bell />
-        <h1>Sir Jukebox</h1>
+        {/* <h1>Sir Jukebox</h1> */}
       </header>
       <body className="main">
-        <div>
-          <div>
-            <span>
-              Selection by <span className="author">{nowPlaying.name}</span>
-            </span>
+        <Jukebox>
+          <div className="section top">
+            <div className="selection-by">
+              <span>
+                Selection by <span className="author">{nowPlaying.name}</span>
+              </span>
+            </div>
+            <div className="videoWrapper">
+              <iframe
+                src={nowPlaying.youtubeUrl}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
           </div>
-          <iframe
-            src={nowPlaying.youtubeUrl}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-        <History results={results} handleSelect={handleSelect} />
-        {errorMessage && <p className="error">{errorMessage}</p>}
-        <Form handleSubmit={handleSubmit} />
+          <History results={results} handleSelect={handleSelect} />
+          <div className="form-container">
+            {errorMessage && <p className="error">{errorMessage}</p>}
+            <Form handleSubmit={handleSubmit} />
+          </div>
+        </Jukebox>
         <p className="construction">
           by <a href="https://github.com/tommyhobbs/sir-jukebox">Tom Hobbs</a>
         </p>

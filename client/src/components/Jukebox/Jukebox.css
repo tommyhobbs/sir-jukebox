@@ -1,0 +1,47 @@
+.frame,
+.frame .middle,
+.frame .middle .inner {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  border: 4px solid cornsilk;
+  border-style: inset ridge ridge ridge;
+  border-radius: 45% 45% 0 0;
+}
+
+.frame {
+  width: 90%;
+  margin: 12px;
+}
+
+.frame,
+.frame .middle {
+  padding: 8px;
+  background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 60%,
+      black 60%,
+      black 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 166, 0, 1) 0%,
+      rgba(255, 53, 53, 1) 50%,
+      rgba(255, 166, 0, 1) 100%
+    );
+}
+
+.frame .inner {
+  background-color: cornsilk;
+  overflow: hidden;
+  justify-content: space-between;
+}
+
+.frame .inner .history-container div {
+  flex: 1;
+}
+
+.form-container {
+  padding: 8px;
+}
