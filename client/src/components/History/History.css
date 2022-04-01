@@ -1,14 +1,40 @@
 .history-container {
-  max-width: 90%;
+  position: relative;
+  width: 90%;
   overflow-x: scroll;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
 
-.history-container div {
+.card {
+  background-color: #fbba9a;
+  color: black;
+  border: 2px solid black;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   font-size: 16px;
+}
+
+.card:hover,
+.card:active {
+  z-index: 20 !important;
+}
+
+@media (hover: hover) {
+  .history-container {
+    flex: 1;
+    max-height: 350px;
+    flex-direction: row;
+  }
+
+  .card {
+    position: absolute;
+    transform: skew(0, 22.5deg) translateY(29%);
+  }
+
+  .card:hover {
+    z-index: 20 !important;
+  }
 }
