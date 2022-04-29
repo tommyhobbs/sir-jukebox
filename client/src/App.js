@@ -109,9 +109,9 @@ const App = () => {
             allowFullScreen
           ></iframe>
         </div>
-        <History results={results} handleSelect={handleSelect} />
         {errorMessage && <p className="error">{errorMessage}</p>}
         <Form handleSubmit={handleSubmit} />
+        <History results={results} handleSelect={handleSelect} />
         <p className="construction">
           by <a href="https://github.com/tommyhobbs/sir-jukebox">Tom Hobbs</a>
         </p>

@@ -4,12 +4,15 @@ import "./History.css";
 const History = ({ results, handleSelect }) => {
   return (
     <div className="history-container">
-      {results.map((result) => {
+      {results.map((result, i) => {
         const imageUrl = `https://i1.ytimg.com/vi/${getVideoCodeFromUrl(
           result.youtubeUrl
-        )}/default.jpg`;
+        )}/mqdefault.jpg`;
         return (
-          <div>
+          <div
+            className="card"
+            style={{ left: `${i * 80}px`, zIndex: results.length - i }}
+          >
             <span>{`${result.name}'s track`}</span>
             <img
               src={imageUrl}
