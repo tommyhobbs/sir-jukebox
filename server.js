@@ -215,27 +215,30 @@ app.post("/notify", async (req, res) => {
 
 const sendNotification = async ({ subscription }, message) => {
   try {
-    webpush.sendNotification(
-      subscription,
-      JSON.stringify({
-        title: message,
-      })
-    );
+    webpush
+      .sendNotification(
+        subscription,
+        JSON.stringify({
+          title: message,
+        })
+      )
+      .then(async (res, rej) => {
+        console.log(`res ${res}`);
+        console.log(`rej ${rej}`);
+        if (rej.statusCode === 410) {
+          try {
+            await client
+              .db("sir_jukebox")
+              .collection("subscriptions")
+              .deleteOne({ subscription });
+            console.log(`subscription ${subscription} removed`);
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      });
   } catch (e) {
     console.log(e);
-    console.log(`error code ${e.statusCode}`);
-    //if push subscription has unsubscribed or expired
-    if (e.statusCode === 410) {
-      try {
-        await client
-          .db("sir_jukebox")
-          .collection("subscriptions")
-          .deleteOne({ subscription });
-        console.log(`subscription ${subscription} removed`);
-      } catch (e) {
-        console.log(e);
-      }
-    }
   }
 };
 
