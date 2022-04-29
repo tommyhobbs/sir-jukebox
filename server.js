@@ -121,12 +121,10 @@ app.post("/api/video", async (req, res) => {
         ({ subscription }) =>
           subscription?.endpoint !== req.body.subscription?.endpoint
       )
-      .map(
-        subs.map(({ subscription }) =>
-          sendNotification(
-            subscription,
-            `${req.body?.data?.name} added a new track!`
-          )
+      .map(({ subscription }) =>
+        sendNotification(
+          subscription,
+          `${req.body?.data?.name} added a new track!`
         )
       );
     res.send(result);
