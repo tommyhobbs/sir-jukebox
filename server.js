@@ -17,6 +17,35 @@ webpush.setVapidDetails(
   privateVapidKey
 );
 
+const sendNotification = async (subscription, message) => {
+  try {
+    webpush
+      .sendNotification(
+        subscription,
+        JSON.stringify({
+          title: message,
+        })
+      )
+      .then(async (res, rej) => {
+        console.log(`res ${res}`);
+        console.log(`rej ${rej}`);
+        if (rej?.statusCode === 410) {
+          try {
+            await client
+              .db("sir_jukebox")
+              .collection("subscriptions")
+              .deleteOne({ subscription });
+            console.log(`subscription ${subscription} removed`);
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 app.use(express.json());
 // use the express-static middleware
 app.use(express.static("public"));
@@ -35,7 +64,7 @@ app.get("/api/video", async function (req, res) {
     console.log(result);
     res.send(result);
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -55,7 +84,7 @@ app.get("/api/videos", async function (req, res) {
       .toArray();
     res.send(results);
   } catch (err) {
-    throw new Error(err);
+    console.error(serr);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -74,10 +103,7 @@ app.post("/api/video", async (req, res) => {
 
     if (req.body.subscription) {
       // send notification to submitter
-      sendNotification(
-        { subscription: req.body.subscription },
-        `Your track has been added...`
-      );
+      sendNotification(req.body.subscription, `Your track has been added...`);
     }
 
     const subs = await client
@@ -96,13 +122,16 @@ app.post("/api/video", async (req, res) => {
           subscription?.endpoint !== req.body.subscription?.endpoint
       )
       .map(
-        subs.map((sub) =>
-          sendNotification(sub, `${req.body?.data?.name} added a new track!`)
+        subs.map(({ subscription }) =>
+          sendNotification(
+            subscription,
+            `${req.body?.data?.name} added a new track!`
+          )
         )
       );
     res.send(result);
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -133,11 +162,11 @@ app.post("/subscribe", async (req, res) => {
         .db("sir_jukebox")
         .collection("subscriptions")
         .insertOne({ subscription });
-      sendNotification({ subscription }, "Subscribed to now playing...");
+      sendNotification(subscription, "Subscribed to now playing...");
     }
     res.status(201).json({});
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -158,7 +187,7 @@ app.delete("/subscribe", async (req, res) => {
       .deleteOne({ subscription });
     res.sendStatus(204);
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -179,7 +208,7 @@ app.post("/isSubscribed", async (req, res) => {
       .findOne({ subscription }, { sort: { $natural: -1 } });
     res.status(200).json({ subscription: isSubscribed ? subscription : null });
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -200,47 +229,20 @@ app.post("/notify", async (req, res) => {
         .sort({ $natural: 1 })
         .limit(50)
         .toArray();
-      subs.map((sub) => sendNotification(sub, req.body.message));
+      subs.map(({ subscription }) =>
+        sendNotification(subscription, req.body.message)
+      );
       res.sendStatus(201);
     } else {
       res.sendStatus(406);
     }
   } catch (err) {
-    throw new Error(err);
+    console.error(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
   }
 });
-
-const sendNotification = async ({ subscription }, message) => {
-  try {
-    webpush
-      .sendNotification(
-        subscription,
-        JSON.stringify({
-          title: message,
-        })
-      )
-      .then(async (res, rej) => {
-        console.log(`res ${res}`);
-        console.log(`rej ${rej}`);
-        if (rej?.statusCode === 410) {
-          try {
-            await client
-              .db("sir_jukebox")
-              .collection("subscriptions")
-              .deleteOne({ subscription });
-            console.log(`subscription ${subscription} removed`);
-          } catch (e) {
-            console.log(e);
-          }
-        }
-      });
-  } catch (e) {
-    console.log(e);
-  }
-};
 
 // start the server listening for requests
 app.listen(process.env.PORT || 5000, () => console.log("Server is running..."));
