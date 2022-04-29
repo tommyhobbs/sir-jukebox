@@ -74,11 +74,9 @@ app.post("/api/video", async (req, res) => {
 
     if (req.body.subscription) {
       // send notification to submitter
-      webpush.sendNotification(
-        req.body.subscription,
-        JSON.stringify({
-          title: `Your track has been added...`,
-        })
+      sendNotification(
+        { subscription: req.body.subscription },
+        `Your track has been added...`
       );
     }
 
@@ -97,12 +95,9 @@ app.post("/api/video", async (req, res) => {
         ({ subscription }) =>
           subscription?.endpoint !== req.body.subscription?.endpoint
       )
-      .map(({ subscription }) =>
-        webpush.sendNotification(
-          subscription,
-          JSON.stringify({
-            title: `${req.body?.data?.name} added a new track!`,
-          })
+      .map(
+        subs.map((sub) =>
+          sendNotification(sub, `${req.body?.data?.name} added a new track!`)
         )
       );
     res.send(result);
@@ -138,10 +133,7 @@ app.post("/subscribe", async (req, res) => {
         .db("sir_jukebox")
         .collection("subscriptions")
         .insertOne({ subscription });
-      webpush.sendNotification(
-        subscription,
-        JSON.stringify({ title: "Subscribed to now playing..." })
-      );
+      sendNotification({ subscription }, "Subscribed to now playing...");
     }
     res.status(201).json({});
   } catch (err) {
@@ -208,14 +200,7 @@ app.post("/notify", async (req, res) => {
         .sort({ $natural: 1 })
         .limit(50)
         .toArray();
-      subs.map(({ subscription }) =>
-        webpush.sendNotification(
-          subscription,
-          JSON.stringify({
-            title: `${req.body.message}`,
-          })
-        )
-      );
+      subs.map((sub) => sendNotification(sub, req.body.message));
       res.sendStatus(201);
     } else {
       res.sendStatus(406);
@@ -227,6 +212,32 @@ app.post("/notify", async (req, res) => {
     await client.close();
   }
 });
+
+const sendNotification = async ({ subscription }, message) => {
+  try {
+    webpush.sendNotification(
+      subscription,
+      JSON.stringify({
+        title: message,
+      })
+    );
+  } catch (e) {
+    console.log(e);
+    console.log(`error code ${e.statusCode}`);
+    //if push subscription has unsubscribed or expired
+    if (e.statusCode === 410) {
+      try {
+        await client
+          .db("sir_jukebox")
+          .collection("subscriptions")
+          .deleteOne({ subscription });
+        console.log(`subscription ${subscription} removed`);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+};
 
 // start the server listening for requests
 app.listen(process.env.PORT || 5000, () => console.log("Server is running..."));
