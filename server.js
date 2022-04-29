@@ -225,7 +225,7 @@ const sendNotification = async ({ subscription }, message) => {
       .then(async (res, rej) => {
         console.log(`res ${res}`);
         console.log(`rej ${rej}`);
-        if (rej.statusCode === 410) {
+        if (rej?.statusCode === 410) {
           try {
             await client
               .db("sir_jukebox")
