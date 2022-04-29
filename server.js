@@ -217,8 +217,9 @@ app.post("/notify", async (req, res) => {
         )
       );
       res.sendStatus(201);
+    } else {
+      res.sendStatus(406);
     }
-    res.sendStatus(406);
   } catch (err) {
     throw new Error(err);
   } finally {
