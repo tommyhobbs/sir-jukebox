@@ -62,7 +62,7 @@ app.get("/api/videos", async function (req, res) {
   }
 });
 
-app.post("/api/video", async function (req, res) {
+app.post("/api/video", async (req, res) => {
   const client = new MongoClient(uri, { useUnifiedTopology: true });
   console.log("POST /api/video", req.body);
   try {
@@ -186,6 +186,39 @@ app.post("/isSubscribed", async (req, res) => {
       .collection("subscriptions")
       .findOne({ subscription }, { sort: { $natural: -1 } });
     res.status(200).json({ subscription: isSubscribed ? subscription : null });
+  } catch (err) {
+    throw new Error(err);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+  }
+});
+
+// custom notification
+app.post("/notify", async (req, res) => {
+  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  console.log("POST /notify", req.body);
+  try {
+    await client.connect();
+    if (req.body?.message && req.body?.publicVapidKey === publicVapidKey) {
+      const subs = await client
+        .db("sir_jukebox")
+        .collection("subscriptions")
+        .find()
+        .sort({ $natural: 1 })
+        .limit(50)
+        .toArray();
+      subs.map(({ subscription }) =>
+        webpush.sendNotification(
+          subscription,
+          JSON.stringify({
+            title: `${req.body.message}`,
+          })
+        )
+      );
+      res.sendStatus(201);
+    }
+    res.sendStatus(406);
   } catch (err) {
     throw new Error(err);
   } finally {
