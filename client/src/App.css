@@ -78,7 +78,7 @@ p.signature {
   .main {
     height: 100vh;
     margin: 0 16px;
-    grid-template-columns: 65% auto;
+    grid-template-columns: 60% auto;
     grid-template-areas:
       "header header"
       "now-playing history"
