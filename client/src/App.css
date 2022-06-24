@@ -1,14 +1,19 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
 .App {
   text-align: center;
   background-color: #7b4f3b;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   font-size: calc(10px + 2vmin);
   color: white;
 }
 .header {
-  padding-top: 16px;
+  grid-area: header;
 }
 .header h1 {
   font-family: "Monoton", cursive;
@@ -16,13 +21,25 @@
   font-weight: 400;
   margin: 8px;
 }
+
+h2 {
+  margin: 0;
+}
+
 .main {
+  margin: 0;
+  height: 100%;
   font-family: "Fugaz One", cursive;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-rows: max-content min-content 1fr auto;
+  grid-template-areas:
+    "header"
+    "now-playing"
+    "form"
+    "history"
+    "signature";
+  grid-gap: 16px;
 }
 .author {
   font-style: italic;
@@ -30,9 +47,42 @@
 .error {
   color: lightcoral;
 }
-p.construction {
-  align-self: flex-end;
+p.signature {
+  grid-area: signature;
+  justify-self: flex-end;
   bottom: 8px;
   font-size: 16px;
   margin: 8px;
+}
+.now-playing {
+  grid-area: now-playing;
+}
+.player {
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding-top: 56.25%;
+}
+.player iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 900px) {
+  .main {
+    height: 100vh;
+    margin: 0 16px;
+    grid-template-columns: 65% auto;
+    grid-template-areas:
+      "header header"
+      "now-playing history"
+      "form history"
+      ". signature";
+  }
 }

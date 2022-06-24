@@ -1,6 +1,15 @@
 form {
+  grid-area: form;
+  align-self: center;
+  justify-self: center;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  padding: 24px;
+  padding-right: 8px;
+}
+
+@media (min-width: 900px) {
+  form {
+    padding-right: 0px;
+  }
 }
