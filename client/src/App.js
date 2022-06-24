@@ -90,32 +90,35 @@ const App = () => {
 
   return (
     <div className="App">
-      <header className="header">
-        <Bell />
-        <h1>Sir Jukebox</h1>
-      </header>
-      <body className="main">
-        <div>
-          <div>
-            <span>
-              Selection by <span className="author">{nowPlaying.name}</span>
-            </span>
+      <div className="main">
+        <header className="header">
+          <Bell />
+          <h1>Sir Jukebox</h1>
+        </header>
+        <div className="now-playing">
+          <div className="player">
+            <iframe
+              src={nowPlaying.youtubeUrl}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
-          <iframe
-            src={nowPlaying.youtubeUrl}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+          <div>
+            <h2>
+              Selection by <span className="author">{nowPlaying.name}</span>
+            </h2>
+          </div>
         </div>
         {errorMessage && <p className="error">{errorMessage}</p>}
+
         <Form handleSubmit={handleSubmit} />
         <History results={results} handleSelect={handleSelect} />
-        <p className="construction">
+        <p className="signature">
           by <a href="https://github.com/tommyhobbs/sir-jukebox">Tom Hobbs</a>
         </p>
-      </body>
+      </div>
     </div>
   );
 };
