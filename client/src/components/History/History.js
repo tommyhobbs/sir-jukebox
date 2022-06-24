@@ -4,7 +4,6 @@ import "./History.css";
 
 const History = ({ results, handleSelect }) => {
   const [tracks, setTracks] = useState(results);
-  console.log(results);
   useEffect(() => {
     const fetchTracks = async () => {
       const infoPromises = results.map((result) =>
@@ -25,14 +24,14 @@ const History = ({ results, handleSelect }) => {
       );
     };
     fetchTracks().catch(console.error);
-  }, [results, tracks]);
+  }, [results]);
   return (
     <div className="history-container">
       <h3>History</h3>
       <div className="history">
         {tracks.map((track, i) => {
           return (
-            <div className="card">
+            <div className="card" key={track.trackName}>
               <img
                 src={track.thumbnail}
                 alt={`${track.name}'s thumbnail`}
