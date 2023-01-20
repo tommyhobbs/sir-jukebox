@@ -20,7 +20,7 @@ const Bell = () => {
 
         // Send subscription and check if its in the db
         console.log("Checking subscription...");
-        const res = await fetch("/isSubscribed", {
+        const res = await fetch("/.netlify/functions/isSubscribed", {
           method: "POST",
           body: JSON.stringify(subscription),
           headers: {
@@ -28,8 +28,9 @@ const Bell = () => {
           },
         });
         console.log("IsSubscribed Sent...");
-        const data = await res.json();
-        return data?.subscription || null;
+        const text = await res.text();
+        const json = await JSON.parse(text);
+        return json?.subscription || null;
       } catch (e) {
         console.error(e);
       }
@@ -76,7 +77,7 @@ const Bell = () => {
 
       // Send Push Notification
       console.log("Sending Push...");
-      const res = await fetch("/subscribe", {
+      const res = await fetch("/.netlify/functions/subscribe", {
         method: "POST",
         body: JSON.stringify(subscription),
         headers: {
@@ -96,7 +97,7 @@ const Bell = () => {
     try {
       // Delete registration
       console.log("Unregistering...");
-      await fetch("/subscribe", {
+      await fetch("/.netlify/functions/subscribe", {
         method: "DELETE",
         body: JSON.stringify(subscription),
         headers: {
@@ -104,7 +105,11 @@ const Bell = () => {
         },
       });
       setSubscription(null);
-      navigator.serviceWorker.unregister();
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
     } catch (e) {
       console.error(e);
     }

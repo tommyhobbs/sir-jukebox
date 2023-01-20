@@ -28,7 +28,6 @@ const getVideoCodeFromUrl = (url) => {
   for (const match of matches) {
     return match[5];
   }
-  return null;
 };
 
 export { isValidHttpUrl, urlBase64ToUint8Array, getVideoCodeFromUrl };

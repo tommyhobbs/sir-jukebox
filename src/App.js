@@ -14,11 +14,11 @@ const App = () => {
   const [results, setResults] = useState([]);
 
   const setLatestVideo = () =>
-    fetch("/api/videos")
-      .then((response) => response.json())
-      .then((data) => {
+    fetch("/.netlify/functions/videos")
+      .then((response) => response.text())
+      .then((text) => {
         // only have the newest song from each person
-        const filtered = data.reduce(
+        const filtered = JSON.parse(text).reduce(
           (prev, curr) =>
             curr.name &&
             curr.youtubeUrl &&
@@ -58,7 +58,7 @@ const App = () => {
           serviceWorkerRegistration.pushManager.getSubscription()
         )
         .then((registration) =>
-          fetch("/api/video", {
+          fetch("/.netlify/functions/video", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -69,7 +69,7 @@ const App = () => {
             }),
           })
         )
-        .then((response) => response.json())
+        .then((response) => JSON.parse(response))
         .then((data) => {
           if (data.acknowledged) {
             setLatestVideo();
@@ -79,8 +79,9 @@ const App = () => {
           }
         })
         .catch((e) => {
-          setErrorMessage(e);
-        });
+          setErrorMessage(e.errorMessage);
+        })
+        .finally(() => setLatestVideo());
     } else {
       setErrorMessage("Invalid YouTube url");
     }

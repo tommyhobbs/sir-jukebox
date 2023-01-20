@@ -1,3 +1,5 @@
+//deprecated after netlify migration
+
 const path = require("path");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -61,7 +63,6 @@ app.get("/api/video", async function (req, res) {
       .db("sir_jukebox")
       .collection("videos")
       .findOne({}, { sort: { $natural: -1 } });
-    console.log(result);
     res.send(result);
   } catch (err) {
     console.error(err);
