@@ -18,14 +18,14 @@ self.addEventListener("notificationclick", (e) => {
     clients.matchAll({ type: "window" }).then((clientsArr) => {
       // If a Window tab matching the targeted URL already exists, focus that;
       const hadWindowToFocus = clientsArr.some((windowClient) =>
-        windowClient.url === "https://sirjukebox.herokuapp.com"
+        windowClient.url === "https://sirjukebox.netlify.app/"
           ? (windowClient.focus(), true)
           : false
       );
       // Otherwise, open a new tab to the applicable URL and focus it.
       if (!hadWindowToFocus)
         clients
-          .openWindow("https://sirjukebox.herokuapp.com")
+          .openWindow("https://sirjukebox.netlify.app/")
           .then((windowClient) => (windowClient ? windowClient.focus() : null));
     })
   );
