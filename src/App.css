@@ -18,8 +18,9 @@ body {
 .header h1 {
   font-family: "Monoton", cursive;
   color: #fbba9a;
-  font-weight: 400;
-  margin: 8px;
+  font-size: 40px;
+  font-weight: 100;
+  margin: 0;
 }
 
 h2 {
@@ -28,17 +29,18 @@ h2 {
 
 .main {
   margin: 0;
-  height: 100%;
+  height: 100vh;
   font-family: "Fugaz One", cursive;
   display: grid;
-  grid-template-columns: auto;
-  grid-template-rows: max-content min-content 1fr auto;
+  grid-template-columns: 1fr minmax(600px, 1fr) 1fr;
+  grid-template-rows: min-content min-content min-content 1fr auto;
   grid-template-areas:
-    "header"
-    "now-playing"
-    "form"
-    "history"
-    "signature";
+    ". header ."
+    ". now-playing ."
+    ". track-select ."
+    ". history ."
+    ". form ."
+    ". . signature";
   grid-gap: 16px;
 }
 .author {
@@ -72,17 +74,4 @@ p.signature {
   right: 0;
   width: 100%;
   height: 100%;
-}
-
-@media (min-width: 900px) {
-  .main {
-    height: 100vh;
-    margin: 0 16px;
-    grid-template-columns: 60% auto;
-    grid-template-areas:
-      "header header"
-      "now-playing history"
-      "form history"
-      ". signature";
-  }
 }

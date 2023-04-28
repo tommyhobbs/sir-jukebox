@@ -16,7 +16,7 @@ exports.handler = async function (event, context) {
         .collection("videos")
         .find()
         .sort({ $natural: -1 })
-        .limit(50)
+        .limit(20)
         .toArray();
       return {
         statusCode: 200,

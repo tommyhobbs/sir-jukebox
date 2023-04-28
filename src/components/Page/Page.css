@@ -1,0 +1,30 @@
+.page {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  box-sizing: border-box;
+  border: 1px solid black;
+  transition: transform 0.2s;
+  user-select: none;
+}
+
+.side {
+  position: relative;
+  pointer-events: none;
+}
+
+.side.B {
+  transform: scaleX(-100%);
+  display: none;
+}
+
+.side span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 8px;
+}
+
+.page img {
+  width: 100%;
+}

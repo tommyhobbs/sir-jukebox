@@ -118,7 +118,7 @@ const Bell = () => {
   return (
     <>
       {isSupported ? (
-        <button onClick={handleBellClick}>
+        <button className="bell" onClick={handleBellClick}>
           {subscription ? "Unsubscribe 🔕" : "Subscribe 🔔"}
         </button>
       ) : null}
